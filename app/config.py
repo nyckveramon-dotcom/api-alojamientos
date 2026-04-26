@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Config:
     """Configuración central de la aplicación"""
 
@@ -11,7 +12,7 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
     _jwt_exp = os.getenv("JWT_EXP_MINUTES", "15")
 
-    JWT_EXP_MINUTES = int(_jwt_exp) if _jwt_exp.isdigit()else 15
+    JWT_EXP_MINUTES = int(_jwt_exp) if _jwt_exp.isdigit() else 15
 
     _db_user = os.getenv("DB_USER", "").strip()
     _db_password = os.getenv("DB_PASSWORD", "").strip()
@@ -32,12 +33,12 @@ class Config:
             raise ValueError("Falta la variable DB_NAME en el archivo .env")
         if not SECRET_KEY:
             raise ValueError("Falta la variable SECRET_KEY en el archivo .env")
-    else: 
-         
-         SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-         if not SECRET_KEY:
+    else:
+
+        SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+        if not SECRET_KEY:
             SECRET_KEY = "test-key-for-pytest"
-    
+
     _origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "")
     if _origins_env:
         CORS_ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",") if o.strip()]
@@ -48,6 +49,5 @@ class Config:
             "http://127.0.0.1:5500",
             "http://localhost:8080",
         ]
-    
+
     BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    
