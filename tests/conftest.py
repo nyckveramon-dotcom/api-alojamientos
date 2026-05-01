@@ -68,3 +68,41 @@ def usuario_auth(client):
         'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json',
     }
+
+@pytest.fixture
+def admin_auth(client):
+    """Crea un usuario, lo promueve a admin y devuelve headers con token valido.
+
+    Promueve via servicio directo (UsuarioServicio.promover_a_admin),
+    coherente con la arquitectura del proyecto.
+    """
+    import uuid
+    from app.dominios.usuarios.servicios import UsuarioServicio
+
+    email = f'admin-{uuid.uuid4().hex[:8]}@ejemplo.com'
+
+    # Registrar usuario normal
+    client.post('/api/v1/usuarios/registro', json={
+        'correo': email,
+        'contrasena': '123456',
+    })
+
+    # Promover a admin via servicio (no via modelo directo)
+    servicio = UsuarioServicio(
+        secret_key=client.application.config['SECRET_KEY'],
+        jwt_exp_minutes=client.application.config.get('JWT_EXP_MINUTES', 15),
+    )
+    servicio.promover_a_admin(email)
+
+    # Login con usuario admin
+    resp = client.post('/api/v1/usuarios/login', json={
+        'correo': email,
+        'contrasena': '123456',
+    })
+    datos = json.loads(resp.data)
+    token = datos['data']['access_token']
+
+    return {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json',
+    }

@@ -35,7 +35,7 @@ def create_app():
         }, 200
 
     # Registrar blueprint de usuarios
-    from app.dominios.usuarios.controladores import usuarios_bp
+    from app.dominios.usuarios.controladores import usuarios_bp, admin_bp
     from app.dominios.usuarios.servicios import UsuarioServicio
     from app.dominios.usuarios import controladores as usuarios_ctrl
 
@@ -46,6 +46,8 @@ def create_app():
     )
 
     app.register_blueprint(usuarios_bp, url_prefix=f'/api/{API_VERSION}/usuarios')
+
+    app.register_blueprint(admin_bp, url_prefix=f'/api/{API_VERSION}/admin')
 
     # Manejadores globales de error
     @app.errorhandler(404)
@@ -61,6 +63,7 @@ def create_app():
         CorreoYaRegistradoError,
         CredencialesInvalidasError,
         UsuarioNoEncontradoError,
+        PermisoDenegadoError,
     )
 
     @app.errorhandler(CorreoYaRegistradoError)
@@ -70,6 +73,10 @@ def create_app():
     @app.errorhandler(CredencialesInvalidasError)
     def credenciales_invalidadas(error):
         return {"success": False, "error": {"message": str(error)}}, 401
+    
+    @app.errorhandler(PermisoDenegadoError)
+    def permiso_denegado(error):
+        return {"success": False, "error": {"message": str(error)}}, 403
 
     @app.errorhandler(UsuarioNoEncontradoError)
     def usuario_no_encontrado(error):

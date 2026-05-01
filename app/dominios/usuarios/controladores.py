@@ -4,9 +4,11 @@ from flask import Blueprint, request, jsonify
 from marshmallow import ValidationError
 
 from app.dominios.usuarios.dtos import RegistroUsuarioDTO, ActualizarPerfilDTO
-from app.seguridad import requiere_token
+from app.seguridad import requiere_token, requiere_admin
 
 usuarios_bp = Blueprint('usuarios', __name__)
+
+admin_bp = Blueprint('admin', __name__)
 
 # Variable global que el app factory asignara al crear la app
 usuario_servicio = None
@@ -61,12 +63,6 @@ def obtener_perfil(usuario_id):
     """Obtener el perfil del usuario autenticado."""
     perfil = usuario_servicio.obtener_perfil(usuario_id)
 
-    if not perfil:
-        return jsonify({
-            'success': False,
-            'error': {'message': 'Perfil no encontrado.'}
-        }), 404
-
     return jsonify({
         'success': True,
         'message': 'Perfil obtenido.',
@@ -95,4 +91,19 @@ def actualizar_perfil(usuario_id):
         'success': True,
         'message': 'Perfil actualizado.',
         'data': perfil,
+    }), 200
+
+# ============================================================
+# Blueprint de administracion
+# ============================================================
+
+@admin_bp.route('/usuarios', methods=['GET'])
+@requiere_admin
+def listar_usuarios(usuario_id):
+    """Listar todos los usuarios del sistema (solo admin)."""
+    lista = usuario_servicio.listar_todos_los_usuarios()
+    return jsonify({
+        'success': True,
+        'message': 'Lista de usuarios.',
+        'data': lista,
     }), 200
