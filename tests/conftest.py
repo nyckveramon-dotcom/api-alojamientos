@@ -106,3 +106,29 @@ def admin_auth(client):
         'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json',
     }
+
+@pytest.fixture
+def usuario_auth2(client):
+    """Crea un segundo usuario unico y devuelve headers con token valido.
+
+    Se usa para pruebas de autorizacion donde se necesitan dos usuarios distintos.
+    """
+    import uuid
+    email = f'user2-{uuid.uuid4().hex[:8]}@ejemplo.com'
+
+    client.post('/api/v1/usuarios/registro', json={
+        'correo': email,
+        'contrasena': '123456',
+    })
+
+    resp = client.post('/api/v1/usuarios/login', json={
+        'correo': email,
+        'contrasena': '123456',
+    })
+    datos = json.loads(resp.data)
+    token = datos['data']['access_token']
+
+    return {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json',
+    }

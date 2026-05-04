@@ -5,13 +5,12 @@ from flask_migrate import Migrate
 
 from app.config import Config
 
-# Version de la API
 API_VERSION = 'v1'
 
-# Instancia de SQLAlchemy (se inicializa dentro del factory)
+
 db = SQLAlchemy()
 
-# Instancia de Flask-Migrate (se inicializa dentro del factory)
+
 migrate = Migrate()
 
 
@@ -38,6 +37,9 @@ def create_app():
     from app.dominios.usuarios.controladores import usuarios_bp, admin_bp
     from app.dominios.usuarios.servicios import UsuarioServicio
     from app.dominios.usuarios import controladores as usuarios_ctrl
+    from app.dominios.alojamientos.controladores import alojamientos_bp
+    from app.dominios.alojamientos.servicios import AlojamientoServicio
+    from app.dominios.alojamientos import controladores as alojamientos_ctrl
 
     # Inyectar el servicio con la config correcta
     usuarios_ctrl.usuario_servicio = UsuarioServicio(
@@ -45,9 +47,13 @@ def create_app():
         jwt_exp_minutes=app.config.get('JWT_EXP_MINUTES', 15),
     )
 
+    alojamientos_ctrl.alojamiento_servicio = AlojamientoServicio()
+
     app.register_blueprint(usuarios_bp, url_prefix=f'/api/{API_VERSION}/usuarios')
 
     app.register_blueprint(admin_bp, url_prefix=f'/api/{API_VERSION}/admin')
+
+    app.register_blueprint(alojamientos_bp, url_prefix=f'/api/{API_VERSION}/alojamientos')
 
     # Manejadores globales de error
     @app.errorhandler(404)
@@ -65,6 +71,12 @@ def create_app():
         UsuarioNoEncontradoError,
         PermisoDenegadoError,
     )
+
+    from app.dominios.alojamientos.servicios import AlojamientoNoEncontradoError
+
+    @app.errorhandler(AlojamientoNoEncontradoError)
+    def alojamiento_no_encontrado(error):
+        return {"success": False, "error": {"message": str(error)}}, 404
 
     @app.errorhandler(CorreoYaRegistradoError)
     def correo_duplicado(error):
